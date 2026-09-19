@@ -57,9 +57,10 @@
   tiny: 6.5pt,
   small: 7.5pt,
   body: 8.5pt,
-  h1: 12.5pt,
-  h2: 10.5pt,
-  h3: 9pt,
+  // Match the HTML heading scale: 1.6x / 1.25x / 1.1x of body text.
+  h1: 13.6pt,
+  h2: 10.625pt,
+  h3: 9.35pt,
 )
 
 #let _spacing = (
@@ -321,6 +322,17 @@
 
 /// Main layout entry point: `#show: template`; accepts `theme` and `layout` CLI inputs.
 #let template(body) = context {
+    // Heading numbering is semantic document structure, so keep it active
+    // for both paged and HTML output. Output-specific heading rendering below
+    // remains in the PDF branch.
+    set heading(numbering: (..numbers) => {
+        if numbers.pos().len() <= 3 {
+            numbering("1.1", ..numbers)
+        }
+    })
+    // Keep footnote markers consistent in both paged and HTML output.
+    set footnote(numbering: "[a]")
+
     if target() == "html" {
         _html_template(body, _theme)
     } else {
@@ -393,12 +405,6 @@
         leading: paragraph-leading,
         spacing: 1.5 * paragraph-leading,
     )
-    set heading(numbering: (..numbers) => {
-        if numbers.pos().len() <= 3 {
-            numbering("1.1", ..numbers)
-        }
-    })
-
     show heading: it => context {
         if it.level == 1 and it.numbering != none {
             counter(math.equation).update(0)
@@ -426,7 +432,7 @@
 
         it.body
 
-        if level == 1 {
+        if level <= 2 {
             v(5pt, weak: true)
             line(length: 100%, stroke: 0.35pt + _border_muted)
         }
@@ -437,7 +443,7 @@
     set text(
         font: _main_fonts,
         fill: _fg,
-        weight: "regular",
+        weight: 450,
         size: _font_size.body,
         number-type: "old-style",
         number-width: "tabular",
@@ -527,7 +533,6 @@
     }
 
     // Footnotes restart on each page: superscript [a]; entries: [a] content.
-    set footnote(numbering: "[a]")
     show footnote.entry: it => context {
         let note = it.note
         let number = counter(footnote).at(note.location()).first()

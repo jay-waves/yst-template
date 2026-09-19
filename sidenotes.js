@@ -1,6 +1,6 @@
 // Turn Typst HTML footnotes into Tufte-style sidenotes.
-// This is intentionally DOM-only: Typst already emits semantic footnote
-// asides, so no Markdown parser dependency is required.
+// This is intentionally DOM-only: Typst emits semantic footnote markup, and
+// this normalizes both its aside and endnote representations.
 (function () {
     function blockFor(reference) {
         return reference.closest(
@@ -14,6 +14,30 @@
         ) || /^footnote[-_]/i.test(aside.id || '');
     }
 
+    // Typst's HTML exporter currently emits native `#footnote[...]` values as
+    // endnotes instead of asides. Normalize those entries to the same shape
+    // before looking up references, so the placement logic below can handle
+    // both exporter representations.
+    function normalizeEndnotes(root) {
+        root.querySelectorAll('[role="doc-endnotes"] li[id]').forEach(item => {
+            const aside = document.createElement('aside');
+            aside.id = item.id;
+            aside.setAttribute('role', 'doc-footnote');
+
+            const backlink = item.querySelector('sup[role="doc-backlink"]');
+            if (backlink) {
+                const marker = document.createElement('span');
+                marker.className = 'sidenote-number';
+                marker.textContent = backlink.textContent.trim();
+                aside.append(marker, document.createTextNode(' '));
+                backlink.remove();
+            }
+
+            while (item.firstChild) aside.appendChild(item.firstChild);
+            item.replaceWith(aside);
+        });
+    }
+
     function references(root) {
         return Array.from(root.querySelectorAll('a[href^="#"], [role="doc-noteref"]'))
             .filter(reference => {
@@ -24,6 +48,8 @@
     }
 
     function moveSidenotes(root) {
+        normalizeEndnotes(root);
+
         const notes = new Map(
             Array.from(root.querySelectorAll('aside[id]'))
                 .filter(isFootnote)
