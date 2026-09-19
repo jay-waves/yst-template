@@ -5,7 +5,7 @@
 
 - page layout, CJK typography, and heading styles;
 - sidenotes, theorem, lemma, corollary, definition, and proof environments;
-- Mermaid, Fletcher diagram, and multiline equation helpers;
+- Fletcher diagram and multiline equation helpers;
 - theme CSS and sidenotes JavaScript for HTML output.
 
 ## Current availability
@@ -78,28 +78,6 @@ typst compile --features html --input theme=light note.typ note.html
 
 `theme` 可选 `light` / `dark`；`layout` 可选 `portrait` / `landscape`，
 只影响分页输出。HTML 的宽度、字体、代码框和旁注布局由 `theme.css` 控制。
-
-### Mermaid 图
-
-显式调用 `mermaid`，让 Typst 编译阶段处理图形；单独写 Mermaid 代码围栏
-只会作为代码展示，不会自动变成图。
-
-````typst
-#import "@local/ypst-template:0.1.0": template, mermaid
-#show: template
-
-= 控制链路
-#mermaid(width: 80%, ```mermaid
-flowchart LR
-  Controller --> Gateway
-  Gateway --> Motor
-  Motor --> Feedback
-  Feedback --> Controller
-```)
-````
-
-默认宽度为 `60%`，默认居中，图形配色跟随 `theme`。
-图形由 `merman` 包处理，HTML 无需再引入浏览器端 Mermaid 渲染脚本。
 
 ### 旁注与脚注
 
@@ -207,7 +185,8 @@ struct sample_t {
 ````
 
 代码语言由 Typst 解析和高亮。HTML 的 `theme.css` 提供代码背景框、圆角和
-横向滚动，不显示额外的语言标签。
+横向滚动，不显示额外的语言标签。`mermaid` 等围栏语言没有任何特殊处理，
+一律按普通代码块渲染。
 
 ### 其他导出与样式入口
 

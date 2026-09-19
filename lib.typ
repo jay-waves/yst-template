@@ -3,7 +3,7 @@
 /// Common imports and usage (adjust the path relative to your document):
 /// ```typst
 /// #import "../appx/theme.typ": template, sidenote, theorem, lemma, corollary,
-///   definition, proof, mermaid, fletcher, diagram, node, edge,
+///   definition, proof, fletcher, diagram, node, edge,
 ///   equate-lines, physica
 /// #show: template
 /// #set document(title: "Notes", keywords: ("robotics",))
@@ -14,7 +14,6 @@
 /// - `sidenote(body, aside, side-image: none)`: body with a right-hand sidenote and optional image.
 /// - `theorem` / `lemma` / `corollary`: theorem, lemma, and corollary environments.
 /// - `definition` / `proof`: definition and proof environments.
-/// - `mermaid(source, width: 60%)`: Mermaid diagrams from strings or raw content.
 /// - `diagram(..args)`: theme-aware Fletcher diagrams with the native API.
 /// - `fletcher` / `node` / `edge`: the Fletcher module and native primitives.
 /// - `equate-lines(body, ...)`: multiline equations with chapter numbers and lettered subnumbers.
@@ -31,7 +30,6 @@
     thmrules as _thm_rules,
 )
 #import "@preview/physica:0.9.8" as physica
-#import "@preview/merman:0.1.0": mermaid as _merman
 #import "@preview/fletcher:0.5.8" as fletcher
 #import "@preview/equate:0.3.3": equate as _equate
 #import "html.typ": template as _html_template, sidenote as _html_sidenote
@@ -252,33 +250,6 @@
     _proof_env(..args, body)
     linebreak()
 }
-
-/// Mermaid's native interface with theme-aware defaults; `width` defaults to `60%`.
-#let mermaid(..args) = {
-    align(
-        center,
-        _merman.with(
-                width: 60%,
-                theme-name: "base",
-                background: _bg.to-hex(),
-                theme: (
-                    fontFamily: _main_fonts.first(),
-                    primaryColor: _pre_bg.to-hex(),
-                    primaryTextColor: _fg.to-hex(),
-                    primaryBorderColor: if _dark { "#707680" } else { "#b3b8bd" },
-                    secondaryColor: if _dark { _pre_bg.to-hex() } else { "#f1f2f3" },
-                    tertiaryColor: if _dark { "#353940" } else { "#eceeef" },
-                    lineColor: if _dark { _muted.to-hex() } else { "#686d72" },
-                    textColor: _fg.to-hex(),
-                    titleColor: _accent.to-hex(),
-                    clusterBkg: if _dark { _pre_bg.to-hex() } else { "#fafafa" },
-                    clusterBorder: _border.to-hex(),
-                    edgeLabelBackground: _bg.to-hex(),
-                ),
-        )(..args),
-    )
-}
-
 
 // Chapter-prefixed numbering shared by figures, tables, and equations.
 #let _chapter_numbering(parenthesized, styled, number, ..sub) = context {
