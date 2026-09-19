@@ -1,0 +1,8 @@
+[package]
+name = "ypst-template"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Jay Waves"]
+license = "MIT"
+description = "A document theme with CJK typography, theorem helpers, diagrams, and HTML sidenotes."
+compiler = "0.15.0"
