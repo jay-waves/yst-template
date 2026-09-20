@@ -13,7 +13,7 @@
 /// Apply the HTML-safe layout rules and inject the package assets.
 #let template(body, theme) = {
     // Typst's HTML exporter does not translate PDF layout rules. Keep the
-    // semantic elements and let theme.css style them in the browser.
+    // semantic elements and let the browser styles arrange them.
     show align: it => {
         let horizontal = it.alignment.x
         let css-align = if horizontal == center {
@@ -32,6 +32,7 @@
     show stack: it => it.children.map(child => html.elem("div", child)).join()
     show place: it => it.body
     html.elem("style", attrs: ("data-theme": theme), read("theme.css"))
+    html.elem("style", attrs: ("data-sidenotes": ""), read("sidenotes.css"))
     html.elem("script", read("sidenotes.js"))
     body
 }

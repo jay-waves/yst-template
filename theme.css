@@ -58,9 +58,8 @@ main[data-theme="dark"] {
 }
 /*light */
 body {
-  margin: 0 auto;
-  max-width: 980px;
-  padding: 32px;
+  margin: 32px auto;
+  width: min(95%, 920px);
   -ms-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
   font-weight: 450;
@@ -112,8 +111,11 @@ body [hidden] {
 
 body a {
   background-color: rgba(0,0,0,0);
-  color: var(--md-accent);
-  text-decoration: none;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: .12em;
 }
 
 body abbr[title] {
@@ -166,7 +168,7 @@ body sup {
 
 body img {
   border-style: none;
-  max-width: 50%;
+  max-width: 100%;
   height: auto;
   box-sizing: content-box;
 }
@@ -181,7 +183,7 @@ body samp {
 }
 
 body figure {
-  margin: 1em 2.5rem;
+  margin-inline: 2.5rem;
 }
 
 body hr {
@@ -370,18 +372,10 @@ body h6 {
   color: var(--md-muted);
 }
 
-body p {
-  margin-top: 0;
-  margin-bottom: 10px;
-}
-
 body blockquote {
-  margin: 1.25rem 0;
-  padding: .75rem 1rem;
+  padding: .2rem 0 .2rem .9rem;
   color: var(--md-muted);
-  background-color: color-mix(in srgb, var(--md-bg) 98%, var(--md-muted));
-  border: 1px solid color-mix(in srgb, var(--md-border) 78%, transparent);
-  border-radius: 5px;
+  border-left: 2px solid var(--md-border-muted);
   box-sizing: border-box;
 }
 
@@ -417,8 +411,6 @@ body samp {
 }
 
 body pre {
-  margin-top: 0;
-  margin-bottom: 0;
   font-family: var(--md-font-mono);
   font-weight: 400;
   font-size: 12px;
@@ -446,6 +438,7 @@ body a:not([href]) {
 
 body p,
 body blockquote,
+body figure,
 body ul,
 body ol,
 body dl,
@@ -454,10 +447,6 @@ body pre,
 body details {
   margin-top: 0;
   margin-bottom: 1rem;
-}
-
-body blockquote {
-  margin: 1.25rem 0;
 }
 
 body blockquote>:first-child {
@@ -673,107 +662,6 @@ body code span {
   word-wrap: normal;
   background-color: rgba(0,0,0,0);
   border: 0;
-}
-
-body [data-footnote-ref]::before {
-  content: "[";
-}
-
-body [data-footnote-ref]::after {
-  content: "]";
-}
-
-/* Typst HTML emits footnotes as semantic asides. Keep each note beside the
- * block containing its first reference, matching the Markdown preview. */
-body,
-body > main {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(180px, 24%);
-  column-gap: 1.5rem;
-  align-content: start;
-}
-
-body > :not(aside),
-body > main > :not(aside) {
-  grid-column: 1;
-  min-width: 0;
-}
-
-/* Keep headings in the prose track even when the HTML exporter wraps them
- * in an intermediate container. */
-body h1,
-body h2,
-body h3,
-body h4,
-body h5,
-body h6 {
-  grid-column: 1;
-  min-width: 0;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-body > aside,
-body > main > aside,
-body aside[role="doc-footnote"] {
-  grid-column: 2;
-  min-width: 0;
-  margin: 0 0 1rem;
-  color: var(--md-muted);
-  font-size: .8rem;
-  line-height: 1.45;
-  align-self: start;
-}
-
-body aside[role="doc-footnote"] > :first-child { margin-top: 0; }
-body aside[role="doc-footnote"] > :last-child { margin-bottom: 0; }
-body aside[role="doc-footnote"]:target { color: var(--md-fg); }
-
-@media (max-width: 768px) {
-  body,
-  body > main { grid-template-columns: minmax(0, 1fr); }
-  body > aside,
-  body > main > aside,
-  body aside[role="doc-footnote"] {
-    grid-column: 1;
-    padding-left: 1rem;
-  }
-}
-
-body .footnotes {
-  font-size: 12px;
-  color: var(--md-muted);
-  border-top: 1px solid var(--md-border);
-}
-
-body .footnotes ol {
-  padding-left: 1rem;
-}
-
-body .footnotes ol ul {
-  display: inline-block;
-  padding-left: 1rem;
-  margin-top: 1rem;
-}
-
-body .footnotes li {
-  position: relative;
-}
-
-body .footnotes li:target::before {
-  position: absolute;
-  top: calc(0.5rem*-1);
-  right: calc(0.5rem*-1);
-  bottom: calc(0.5rem*-1);
-  left: calc(1.5rem*-1);
-  pointer-events: none;
-  content: "";
-  border: 2px solid var(--md-accent);
-  border-radius: 6px;
-}
-
-body .footnotes li:target {
-  color: var(--md-fg);
 }
 
 body [role=button]:focus:not(:focus-visible),

@@ -20,7 +20,7 @@ Install the package at:
 ```
 
 The directory should contain `typst.toml`, `lib.typ`, `html.typ`, `theme.css`,
-and `sidenotes.js`.
+`sidenotes.css`, and `sidenotes.js`.
 
 Use it from a Typst document:
 
@@ -195,7 +195,8 @@ struct sample_t {
 - `fletcher`、`physica`：直接导出的模块，可按需访问它们的 API。
 - `lib.typ`：公共函数、字号/颜色变量和 PDF 排版规则。
 - `html.typ`：HTML 分支、资源注入及布局适配。
-- `theme.css`：浏览器侧字体、标题、代码块、表格和旁注样式。
+- `theme.css`：浏览器侧字体、标题、代码块和表格样式。
+- `sidenotes.css`：HTML 脚注标记与旁注布局样式。
 - `sidenotes.js`：HTML 原生脚注到旁注的转换。
 
 通过 `@local/ypst-template:0.1.0` 导入时，读取的是本地包目录中的文件。

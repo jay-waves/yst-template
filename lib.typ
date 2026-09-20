@@ -202,17 +202,6 @@
     radius: 3pt
 )
 
-// Titleless, unnumbered theorem box used to render block quotes.
-#let _quote_box = _thm_box(
-    "quote", [],
-    supplement: none,
-    titlefmt: body => body,
-    separator: [],
-    fill: _pre_bg,
-    stroke: 0.4pt + _border,
-    radius: 3pt,
-).with(numbering: none)
-
 /// Lemma environment: `#lemma[Lemma content]`.
 #let lemma = _thm_box(
     "lemma", "引理", 
@@ -372,9 +361,10 @@
     }
 
     let paragraph-leading = 0.8em
+    let block-spacing = 1.5 * paragraph-leading
     set par(
         leading: paragraph-leading,
-        spacing: 1.5 * paragraph-leading,
+        spacing: block-spacing,
     )
     show heading: it => context {
         if it.level == 1 and it.numbering != none {
@@ -427,8 +417,8 @@
             )#h(1em)*#caption.body
         ]
         block(
-            above: 1.1em,
-            below: 1.1em,
+            above: block-spacing,
+            below: block-spacing,
             fig,
         )
     }
@@ -445,15 +435,15 @@
             fill: _code_fg,
         )
 
-        v(0.8em)
         block(
             width: 100%,
+            above: block-spacing,
+            below: block-spacing,
             inset: 0.75em,
             radius: 3pt,
             fill: _code_bg,
             it,
         )
-        v(0.8em)
     }
 
     // inline code
@@ -469,8 +459,14 @@
         ),
     )
 
-    // Render block quotes as titleless, unnumbered ctheorems boxes.
-    show quote: it => _quote_box[
+    // Keep quotes visually quiet and separate from surrounding paragraphs.
+    show quote: it => block(
+      width: 100%,
+      above: block-spacing,
+      below: block-spacing,
+      inset: (left: 0.9em, right: 0pt, top: 0.2em, bottom: 0.2em),
+      stroke: (left: 1pt + _border_muted),
+    )[
         #text(fill: _muted)[
             #it.body
 
