@@ -46,6 +46,9 @@
 #let _code_fonts = (
     "Fira Code",
     "Cascadia Mono",
+    // Explicit CJK fallback keeps comments and string literals visually
+    // consistent instead of depending on the platform's default fallback.
+    "Noto Sans SC",
     "DejaVu Sans Mono",
     "Courier New",
 )
@@ -339,7 +342,9 @@
     }
 
     let paragraph-leading = 0.8em
-    let block-spacing = 1.5 * paragraph-leading
+    // Match theme.css's 1rem block margin more closely at the compact body
+    // size used by the paged template.
+    let block-spacing = 1.4em
     set par(
         leading: paragraph-leading,
         spacing: block-spacing,
@@ -406,6 +411,7 @@
 
     // code block
     show raw.where(block: true): it => {
+        let language = it.lang
         set text(
             font: _code_fonts,
             weight: "regular",
@@ -420,7 +426,25 @@
             inset: 0.75em,
             radius: 3pt,
             fill: palette.code-bg,
-            it,
+            [
+                #if language != none {
+                    place(
+                        top + right,
+                        dx: -0.75em,
+                        // Keep the label on the first code-line baseline.
+                        dy: 0.05em,
+                        text(
+                            font: _code_fonts,
+                            size: _font_size.tiny,
+                            weight: 500,
+                            fill: palette.muted,
+                        )[ #language ],
+                    )
+                }
+                // Raw blocks preserve long source lines. Do not wrap, scale,
+                // or otherwise reshape them; Typst can report width overflow.
+                #it
+            ],
         )
     }
 
@@ -464,16 +488,27 @@
     ]
 
     set table(
-        inset: (x: 0.65em, y: 0.45em),
-        stroke: 0.35pt + palette.border-muted,
+        // Match the Markdown table rhythm: generous horizontal padding and
+        // horizontal rules only, with no vertical grid lines.
+        inset: (x: 1.25em, y: 0.7em),
+        fill: (x, y) => if y > 0 and calc.odd(y) {
+            palette.pre-bg
+        } else {
+            palette.bg
+        },
+        stroke: (x: none, y: 0.35pt + palette.border-muted),
     )
 
-    show table.cell.where(y: 0): it => {
+    show table.cell: it => {
+        // CSS uses the document background for odd rows and the preformatted
+        // background for every second row. Keep the same alternating rhythm
+        // in paged Typst output, including repeated table headers.
         set text(
-            weight: "bold",
-            fill: palette.accent,
+            size: 0.875em,
+            number-width: "tabular",
+            weight: if it.y == 0 { "bold" } else { 450 },
+            fill: if it.y == 0 { palette.accent } else { palette.fg },
         )
-        set table.cell(fill: palette.pre-bg)
         it
     }
 
