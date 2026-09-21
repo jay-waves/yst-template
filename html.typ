@@ -1,5 +1,10 @@
 /// HTML-specific rendering helpers for the document theme.
 
+/// Select an output implementation while keeping all target detection in the
+/// HTML adapter. The branches are functions so unsupported HTML elements are
+/// not evaluated during paged compilation.
+#let when-html(html, paged) = if target() == "html" { html() } else { paged() }
+
 /// Render a sidenote as a semantic HTML footnote aside.
 #let sidenote(body, aside) = {
     body
@@ -11,7 +16,16 @@
 }
 
 /// Apply the HTML-safe layout rules and inject the package assets.
-#let template(body, theme) = {
+#let template(theme: "light", body) = {
+    // These semantic rules are shared with paged output, but are repeated here
+    // to keep the HTML renderer independent from the paged implementation.
+    set heading(numbering: (..numbers) => {
+        if numbers.pos().len() <= 3 {
+            numbering("1.1", ..numbers)
+        }
+    })
+    set footnote(numbering: "[a]")
+
     // Typst's HTML exporter does not translate PDF layout rules. Keep the
     // semantic elements and let the browser styles arrange them.
     show align: it => {

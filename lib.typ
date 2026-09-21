@@ -5,12 +5,12 @@
 /// #import "../appx/theme.typ": template, sidenote, theorem, lemma, corollary,
 ///   definition, proof, fletcher, diagram, node, edge,
 ///   equate-lines, physica
-/// #show: template
+/// #show: template.with(theme: "light", layout: "portrait")
 /// #set document(title: "Notes", keywords: ("robotics",))
 /// ```
 ///
 /// Feature index:
-/// - `template(body)` / `template(body)`: page layout and styling; `template` is a compatibility entry point.
+/// - `template(theme: "light", layout: "portrait", body)`: page layout and styling.
 /// - `sidenote(body, aside, side-image: none)`: body with a right-hand sidenote and optional image.
 /// - `theorem` / `lemma` / `corollary`: theorem, lemma, and corollary environments.
 /// - `definition` / `proof`: definition and proof environments.
@@ -19,7 +19,6 @@
 /// - `equate-lines(body, ...)`: multiline equations with chapter numbers and lettered subnumbers.
 /// - `physica`: physics utilities module; use `physica.xxx`.
 ///
-/// CLI inputs: `--input theme=dark/light`, `--input layout=landscape/portrait`.
 /// HTML export: `typst compile --features html path/to/note.typ note.html`.
 /// The recommended interfaces are listed above; other top-level names remain importable.
 
@@ -32,7 +31,7 @@
 #import "@preview/physica:0.9.8" as physica
 #import "@preview/fletcher:0.5.8" as fletcher
 #import "@preview/equate:0.3.3": equate as _equate
-#import "html.typ": template as _html_template, sidenote as _html_sidenote
+#import "html.typ" as _html
 
 #assert(
     sys.version >= version(0, 15, 0),
@@ -53,7 +52,6 @@
 
 #let _font_size = (
   tiny: 6.5pt,
-  small: 7.5pt,
   body: 8.5pt,
   // Match the HTML heading scale: 1.6x / 1.25x / 1.1x of body text.
   h1: 13.6pt,
@@ -61,46 +59,29 @@
   h3: 9.35pt,
 )
 
-#let _spacing = (
-    xs: 5pt,
-    sm: 8pt,
-    md: 12pt,
-    lg: 18pt,
-    xl: 32pt,
-)
+#let _palette(theme) = {
+    assert(
+        theme in ("light", "dark"),
+        message: "The theme must be either \"light\" or \"dark\".",
+    )
+    let dark = theme == "dark"
+    (
+        fg: if dark { rgb("#c9cdd2") } else { rgb("#26282b") },
+        bg: if dark { rgb("#1e1e1e") } else { white },
+        muted: if dark { rgb("#a0a5ad") } else { rgb("#62666b") },
+        border: if dark { rgb("#50555d") } else { rgb("#cbd0d5") },
+        border-muted: if dark { rgb("#50555db3") } else { rgb("#cbd0d5b3") },
+        accent: if dark { rgb("#dde0e4") } else { rgb("#202326") },
+        accent-2: if dark { rgb("#bfc5cd") } else { rgb("#4b5157") },
+        code-fg: if dark { rgb("#c3c9d1") } else { rgb("#33373b") },
+        pre-bg: if dark { rgb("#2d3035") } else { rgb("#f6f7f8") },
+        code-bg: if dark { rgb("#2d3035cc") } else { rgb("#f6f7f8cc") },
+    )
+}
 
-#let _preview_info = json(
-    bytes(sys.inputs.at("x-preview", default: "{}"))
-)
-
-#let _theme = sys.inputs.at(
-    "theme",
-    default: _preview_info.at("theme", default: "light"),
-)
-
-#let _layout = sys.inputs.at("layout", default: "portrait")
-#assert(
-    _layout in ("portrait", "landscape"),
-    message: "The layout input must be either \"portrait\" or \"landscape\".",
-)
-
-#let _dark = _theme == "dark"
-#let _landscape = _layout == "landscape"
-#let _page_columns = if _landscape { 2 } else { 1 }
-
-#let _fg = if _dark { rgb("#c9cdd2") } else { rgb("#26282b") }
-#let _bg = if _dark { rgb("#1e1e1e") } else { white }
-#let _muted = if _dark { rgb("#a0a5ad") } else { rgb("#62666b") }
-#let _border = if _dark { rgb("#50555d") } else { rgb("#cbd0d5") }
-#let _border_muted = if _dark { rgb("#50555db3") } else { rgb("#cbd0d5b3") }
-#let _accent = if _dark { rgb("#dde0e4") } else { rgb("#202326") }
-#let _accent_2 = if _dark { rgb("#bfc5cd") } else { rgb("#4b5157") }
-#let _code_fg = if _dark { rgb("#c3c9d1") } else { rgb("#33373b") }
-#let _pre_bg = if _dark { rgb("#2d3035") } else { rgb("#f6f7f8") }
-#let _code_bg = if _dark { rgb("#2d3035cc") } else { rgb("#f6f7f8cc") }
-#let _shadow = if _dark { rgb("#00000066") } else { rgb("#383c4018") }
-
-#let _cjk_text = regex("\p{Han}+")
+// Components are evaluated contextually so one template configuration also
+// controls diagrams, sidenotes, and theorem environments.
+#let _theme = state("ypst-template.theme", "light")
 
 // Keep opening punctuation with the following Han glyph and closing
 // punctuation with the preceding one. Each match remains small enough for
@@ -115,20 +96,23 @@
 
 /// Fletcher's native diagram interface with theme-aware defaults.
 /// Explicit call-site options override the injected defaults.
-#let diagram(..args) = align(center, {
-    set text(
-        font: _main_fonts,
-        size: _font_size.tiny,
-        fill: _fg,
-    )
+#let diagram(..args) = context {
+    let palette = _palette(_theme.get())
+    align(center, {
+        set text(
+            font: _main_fonts,
+            size: _font_size.tiny,
+            fill: palette.fg,
+        )
 
-    fletcher.diagram.with(
-        spacing: 3em,
-        node-fill: _pre_bg,
-        node-stroke: 0.5pt + _border,
-        edge-stroke: 0.55pt + _muted,
-    )(..args)
-})
+        fletcher.diagram.with(
+            spacing: 3em,
+            node-fill: palette.pre-bg,
+            node-stroke: 0.5pt + palette.border,
+            edge-stroke: 0.55pt + palette.muted,
+        )(..args)
+    })
+}
 
 /// Body with a right-hand sidenote: `#sidenote[Body][Aside]`; `side-image` accepts an image path or content.
 #let _sidenote_content(content) = context {
@@ -139,6 +123,7 @@
 }
 
 #let sidenote(body, aside, side-image: none) = context {
+    let palette = _palette(_theme.get())
     let aside-text = if aside == [] {
         none
     } else {
@@ -146,7 +131,7 @@
             width: 100%,
             inset: (x: 0.75em, y: 0.6em),
             radius: 3pt,
-            fill: _pre_bg,
+            fill: palette.pre-bg,
             text(size: _font_size.tiny, aside),
         )
     }
@@ -175,10 +160,9 @@
     }
 
     let rendered-aside = _sidenote_content(aside-content)
-    if target() == "html" {
-        _html_sidenote(body, rendered-aside)
-    } else {
-        block(
+    _html.when-html(
+        () => _html.sidenote(body, rendered-aside),
+        () => block(
             width: 100%,
             breakable: true,
             grid(
@@ -188,45 +172,41 @@
                 block(width: 100%, body),
                 block(width: 100%, rendered-aside),
             ),
-        )
-    }
+        ),
+    )
 }
 
 /// Theorem environment: `#theorem[Theorem content]`.
-#let theorem = _thm_box(
-    "theorem", "定理", 
-    supplement: [Thm.],
-    titlefmt: strong, 
-    fill: _pre_bg, 
-    stroke: 0.4pt + _border, 
-    radius: 3pt
-)
+#let theorem(..args, body) = context {
+    let palette = _palette(_theme.get())
+    _thm_box(
+        "theorem", "定理", supplement: [Thm.], titlefmt: strong,
+        fill: palette.pre-bg, stroke: 0.4pt + palette.border, radius: 3pt,
+    )(..args, body)
+}
 
 /// Lemma environment: `#lemma[Lemma content]`.
-#let lemma = _thm_box(
-    "lemma", "引理", 
-    supplement: [Lemma],
-    titlefmt: strong, 
-    fill: _pre_bg, 
-    stroke: 0.4pt + _border, 
-    radius: 3pt
-)
+#let lemma(..args, body) = context {
+    let palette = _palette(_theme.get())
+    _thm_box(
+        "lemma", "引理", supplement: [Lemma], titlefmt: strong,
+        fill: palette.pre-bg, stroke: 0.4pt + palette.border, radius: 3pt,
+    )(..args, body)
+}
 
 /// Corollary environment: `#corollary[Corollary content]`.
-#let corollary = _thm_plain(
-    "corollary", "推论", 
-    supplement: [Cor.],
-    titlefmt: strong
-)
+#let corollary(..args, body) = {
+    _thm_plain("corollary", "推论", supplement: [Cor.], titlefmt: strong)(..args, body)
+}
 
 /// Definition environment: `#definition[Definition content]`.
-#let definition = _thm_box(
-    "definition", "定义", 
-    supplement: [Def.],
-    fill: _pre_bg, 
-    stroke: 0.4pt + _border, 
-    radius: 3pt
-)
+#let definition(..args, body) = context {
+    let palette = _palette(_theme.get())
+    _thm_box(
+        "definition", "定义", supplement: [Def.],
+        fill: palette.pre-bg, stroke: 0.4pt + palette.border, radius: 3pt,
+    )(..args, body)
+}
 
 #let _proof_env = _thm_proof(
     "proof", "证明", 
@@ -242,6 +222,7 @@
 
 // Chapter-prefixed numbering shared by figures, tables, and equations.
 #let _chapter_numbering(parenthesized, styled, number, ..sub) = context {
+    let palette = _palette(_theme.get())
     let chapter = counter(heading).get().first()
     let suffix = if sub.pos().len() > 0 { numbering("a", sub.pos().first()) } else { "" }
     let value = str(chapter) + "." + str(number) + suffix
@@ -257,7 +238,7 @@
         text(
             font: _main_fonts,
             size: _font_size.tiny,
-            fill: _muted,
+            fill: palette.muted,
             number-type: "lining",
             number-width: "tabular",
             value,
@@ -280,22 +261,19 @@
     _equate(body, sub-numbering: sub-numbering, ..options)
 }
 
-/// Main layout entry point: `#show: template`; accepts `theme` and `layout` CLI inputs.
-#let template(body) = context {
-    // Heading numbering is semantic document structure, so keep it active
-    // for both paged and HTML output. Output-specific heading rendering below
-    // remains in the PDF branch.
+// Paged output is the core renderer. HTML-specific compatibility rules and
+// package asset injection live in html.typ.
+#let _paged_template(theme, layout, body) = context {
+    let palette = _palette(theme)
+    let landscape = layout == "landscape"
+    let page-columns = if landscape { 2 } else { 1 }
+
     set heading(numbering: (..numbers) => {
         if numbers.pos().len() <= 3 {
             numbering("1.1", ..numbers)
         }
     })
-    // Keep footnote markers consistent in both paged and HTML output.
     set footnote(numbering: "[a]")
-
-    if target() == "html" {
-        _html_template(body, _theme)
-    } else {
 
     set math.equation(numbering: _equation_numbering, supplement: [Eq.])
     set heading(supplement: [Sec.])
@@ -326,25 +304,25 @@
 
     set page(
         paper: "a5",
-        flipped: _landscape,
-        columns: _page_columns,
-        fill: _bg,
+        flipped: landscape,
+        columns: page-columns,
+        fill: palette.bg,
         margin: (y: 2.25em, x: 1.8em),
         header: counter(footnote).update(0),
-        foreground: if _landscape {
+        foreground: if landscape {
             place(
                 center + horizon,
                 rect(
                     width: 0.55pt,
                     height: 100% - 6em,
-                    fill: _border_muted,
+                    fill: palette.border-muted,
                 ),
             )
         },
     )
     set columns(gutter: 4%)
 
-    show link: set text(fill: _accent_2)
+    show link: set text(fill: palette.accent-2)
     show link: underline
 
     // Raise regular body text (400) to bold (700).
@@ -381,7 +359,7 @@
             font: _heading_fonts,
             size: size,
             weight: "semibold",
-            fill: _accent,
+            fill: palette.accent,
         )
 
         v((24pt, 18pt, 16pt).at(level - 1), weak: true)
@@ -395,7 +373,7 @@
 
         if level <= 2 {
             v(5pt, weak: true)
-            line(length: 100%, stroke: 0.35pt + _border_muted)
+            line(length: 100%, stroke: 0.35pt + palette.border-muted)
         }
 
         v(12pt, weak: true)
@@ -403,7 +381,7 @@
 
     set text(
         font: _main_fonts,
-        fill: _fg,
+        fill: palette.fg,
         weight: 450,
         size: _font_size.body,
         number-type: "old-style",
@@ -432,7 +410,7 @@
             font: _code_fonts,
             weight: "regular",
             size: _font_size.tiny,
-            fill: _code_fg,
+            fill: palette.code-fg,
         )
 
         block(
@@ -441,7 +419,7 @@
             below: block-spacing,
             inset: 0.75em,
             radius: 3pt,
-            fill: _code_bg,
+            fill: palette.code-bg,
             it,
         )
     }
@@ -450,11 +428,11 @@
     show raw.where(block: false): it => box(
         inset: (x: 0.42em, y: 0.18em),
         radius: 2.5pt,
-        fill: _code_bg,
+        fill: palette.code-bg,
         text(
             font: _code_fonts,
             weight: "regular",
-            fill: _code_fg,
+            fill: palette.code-fg,
             it,
         ),
     )
@@ -465,9 +443,9 @@
       above: block-spacing,
       below: block-spacing,
       inset: (left: 0.9em, right: 0pt, top: 0.2em, bottom: 0.2em),
-      stroke: (left: 1pt + _border_muted),
+      stroke: (left: 1pt + palette.border-muted),
     )[
-        #text(fill: _muted)[
+        #text(fill: palette.muted)[
             #it.body
 
             #if it.attribution != none [
@@ -476,7 +454,7 @@
                     right,
                     text(
                         size: _font_size.tiny,
-                        fill: _muted,
+                        fill: palette.muted,
                     )[
                         — #it.attribution
                     ],
@@ -487,15 +465,15 @@
 
     set table(
         inset: (x: 0.65em, y: 0.45em),
-        stroke: 0.35pt + _border_muted,
+        stroke: 0.35pt + palette.border-muted,
     )
 
     show table.cell.where(y: 0): it => {
         set text(
             weight: "bold",
-            fill: _accent,
+            fill: palette.accent,
         )
-        set table.cell(fill: _pre_bg)
+        set table.cell(fill: palette.pre-bg)
         it
     }
 
@@ -509,5 +487,22 @@
     }
 
     body
-    }
+}
+
+/// Apply the document template. Use with a show rule, optionally pre-filling
+/// configuration: `#show: template.with(theme: "dark", layout: "landscape")`.
+#let template(theme: "light", layout: "portrait", body) = context {
+    // Validate at the public boundary so all output targets report the same
+    // configuration errors.
+    let _ = _palette(theme)
+    assert(
+        layout in ("portrait", "landscape"),
+        message: "The layout must be either \"portrait\" or \"landscape\".",
+    )
+
+    _theme.update(theme)
+    _html.when-html(
+        () => _html.template(theme: theme, body),
+        () => _paged_template(theme, layout, body),
+    )
 }

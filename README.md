@@ -26,7 +26,7 @@ Use it from a Typst document:
 
 ```typst
 #import "@local/ypst-template:0.1.0": template, sidenote, theorem
-#show: template
+#show: template.with(theme: "light", layout: "portrait")
 
 #sidenote[Main text][Side note]
 ```
@@ -46,13 +46,17 @@ standard Typst packages format.
 和 `Noto Sans SC`，代码优先使用 `Fira Code`，建议先安装这些字体。
 首次编译还需要获取 `lib.typ` 中导入的 preview 包。
 
-以下示例按需导入对应函数；一份文档只需调用一次 `#show: template`。
+以下示例按需导入对应函数；一份文档只需调用一次 `#show`。模板配置通过
+普通参数传入，不会读取 `sys.inputs`。
 
 ### 基础排版与编译
 
 ```typst
 #import "@local/ypst-template:0.1.0": template
-#show: template
+#show: template.with(
+  theme: "light",
+  layout: "portrait",
+)
 #set document(title: "控制系统笔记")
 
 = 系统设计
@@ -66,18 +70,21 @@ standard Typst packages format.
 ```
 
 ```sh
-# 默认：浅色、A5 纵向单栏 PDF
+# 配置写在文档的 template.with(...) 中
 typst compile note.typ note.pdf
 
-# 深色 PDF；横向布局使用双栏
-typst compile --input theme=dark --input layout=landscape note.typ note.pdf
-
-# HTML：样式和旁注脚本会嵌入输出文件
-typst compile --features html --input theme=light note.typ note.html
+# HTML 使用同一份显式配置；样式和旁注脚本会嵌入输出文件
+typst compile --features html note.typ note.html
 ```
 
 `theme` 可选 `light` / `dark`；`layout` 可选 `portrait` / `landscape`，
-只影响分页输出。HTML 的宽度、字体、代码框和旁注布局由 `theme.css` 控制。
+两者的默认值分别为 `light` 和 `portrait`，所以也可以简写为 `#show: template`。
+`layout` 只影响分页输出；HTML 的宽度、字体、代码框和旁注布局由
+`theme.css` 控制。例如深色横向双栏 PDF 使用：
+
+```typst
+#show: template.with(theme: "dark", layout: "landscape")
+```
 
 ### 旁注与脚注
 
