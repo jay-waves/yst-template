@@ -24,8 +24,8 @@ main[data-theme]:not([data-theme="dark"]) {
   --md-alert-important: #8250df;
   --md-alert-warning: #9a6700;
   --md-alert-tip: #1a7f37;
-  --md-font-serif: "Libertinus Serif", "Source Han Serif", Georgia, "Times New Roman", serif;
-  --md-font-sans: "Noto Sans", "Libertinus Sans", "Source Han Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --md-font-serif: Georgia, "Source Han Serif", "Times New Roman", serif;
+  --md-font-sans: "Source Han Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --md-font-mono: "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --md-font: var(--md-font-serif);
   color-scheme: light;
@@ -797,14 +797,8 @@ body .markdown-alert.markdown-alert-caution .markdown-alert-title {
 }
 
 body .katex,
-body .katex-display,
-body .katex-display > .katex,
-body .katex-html,
-body .katex .base,
-body mjx-container,
-body mjx-container[display="true"],
-body mjx-container svg {
-  font-size: 15px;
+body mjx-container {
+  font-size: 1em;
 }
 
 /*
