@@ -38,28 +38,54 @@
     message: "This theme requires Typst 0.15.0 or newer.",
 )
 
-#let _main_fonts = ("Noto Serif SC",)
-
-// Use Noto Sans SC for both Chinese and Latin heading glyphs.
-#let _heading_fonts = ("Noto Sans SC",)
-
 #let _code_fonts = (
     "Fira Code",
     "Cascadia Mono",
     // Explicit CJK fallback keeps comments and string literals visually
     // consistent instead of depending on the platform's default fallback.
-    "Noto Sans SC",
-    "DejaVu Sans Mono",
+    "Source Han Sans",
     "Courier New",
+)
+
+// Each role owns both script paths; weights are (regular, strong).
+#let _typography = (
+    body: (
+        latin: (font: ("Libertinus Serif", "Source Han Serif"), weights: (400, 700)),
+        cjk: (font: ("Source Han Serif"), weights: (500, 800)),
+    ),
+    heading: (
+        latin: (font: ("Noto Sans", "Libertinus Sans", "Source Han Sans"), weights: (600, 800)),
+        cjk: (font: ("Source Han Sans"), weights: (600, 800)),
+    ),
+    code: (
+        latin: (font: _code_fonts, weights: (400, 700)),
+        cjk: (font: ("Source Han Sans"), weights: (400, 700)),
+    ),
+    table: (
+        latin: (font: ("Libertinus Serif", "Source Han Serif"), weights: (450, 700)),
+        cjk: (font: ("Source Han Serif"), weights: (500, 800)),
+    ),
+)
+
+// Chinese typography, including full-width punctuation. This is deliberately
+// not a claim to cover Japanese kana or Korean hangul.
+// Single curly quotes also serve as English apostrophes; keep them in the Latin font.
+#let _cjk_text = regex("[\\p{Han}、，。！？；：“”《》「」『』（）【】〔〕〈〉…—]")
+
+#let _script_text(profile, bold, body) = text(
+    font: profile.font,
+    weight: profile.weights.at(int(bold)),
+    body,
 )
 
 #let _font_size = (
   tiny: 6.5pt,
-  body: 8.5pt,
-  // Match the HTML heading scale: 1.6x / 1.25x / 1.1x of body text.
-  h1: 13.6pt,
-  h2: 10.625pt,
-  h3: 9.35pt,
+  code: 6pt,
+  body: 8pt,
+  // Match the HTML heading scale: 1.4x / 1.2x / 1.1x of body text.
+  h1: 11.2pt,
+  h2: 9.6pt,
+  h3: 8.8pt,
 )
 
 #let _palette(theme) = {
@@ -90,8 +116,32 @@
 // punctuation with the preceding one. Each match remains small enough for
 // normal CJK line breaking while avoiding punctuation stranded at line edges.
 #let _cjk_emph_chunk = regex(
-    "[《「『（【〔〈]*\p{Han}[、，。！？；：）》」』】〕〉…—]*"
+    "[‘“《「『（【〔〈]*\\p{Han}[、，。！？；：’”）》」』】〕〉…—]*"
 )
+
+// Semantic modifiers re-enter the same role, preserving bold + emphasis in
+// either nesting order. Only CJK emphasis needs a geometric transformation.
+#let _typeset(role, bold: false, italic: false, heading-cjk-size: 0.94em, body) = {
+    let profile = _typography.at(role)
+    set text(style: ("normal", "italic").at(int(italic)))
+    show strong: it => _typeset(role, bold: true, italic: italic, heading-cjk-size: heading-cjk-size, it.body)
+    show emph: it => _typeset(role, bold: bold, italic: true, heading-cjk-size: heading-cjk-size, it.body)
+    show _cjk_text: set text(
+        font: profile.cjk.font,
+        weight: profile.cjk.weights.at(int(bold)),
+        size: if role == "heading" { heading-cjk-size } else { 1em },
+    )
+    if italic {
+        show _cjk_emph_chunk: chunk => {
+            set text(style: "normal")
+            box(skew(ax: -12deg, reflow: false,
+                _script_text(profile.cjk, bold, chunk)))
+        }
+        _script_text(profile.latin, bold, body)
+    } else {
+        _script_text(profile.latin, bold, body)
+    }
+}
 
 // Re-export Fletcher's node and edge primitives unchanged.
 #let node = fletcher.node
@@ -103,7 +153,7 @@
     let palette = _palette(_theme.get())
     align(center, {
         set text(
-            font: _main_fonts,
+            font: _typography.body.latin.font,
             size: _font_size.tiny,
             fill: palette.fg,
         )
@@ -132,9 +182,6 @@
     } else {
         block(
             width: 100%,
-            inset: (x: 0.75em, y: 0.6em),
-            radius: 3pt,
-            fill: palette.pre-bg,
             text(size: _font_size.tiny, aside),
         )
     }
@@ -173,7 +220,12 @@
                 column-gutter: 4%,
                 align: top + left,
                 block(width: 100%, body),
-                block(width: 100%, rendered-aside),
+                block(
+                    width: 100%,
+                    inset: (left: 0.75em),
+                    stroke: (left: 0.5pt + palette.border),
+                    rendered-aside,
+                ),
             ),
         ),
     )
@@ -239,8 +291,10 @@
             it.text.clusters().map(letter => box(width: 0.55em, align(center, letter))).join()
         }
         text(
-            font: _main_fonts,
-            size: _font_size.tiny,
+            // Equation numbers use the math family so their numerals match
+            // the symbols beside them; figure and table numbers keep body text.
+            font: if parenthesized { "Libertinus Math" } else { _typography.body.latin.font },
+            size: _font_size.body,
             fill: palette.muted,
             number-type: "lining",
             number-width: "tabular",
@@ -328,18 +382,8 @@
     show link: set text(fill: palette.accent-2)
     show link: underline
 
-    // Raise regular body text (400) to bold (700).
-    set strong(delta: 300)
-    // Latin text inherits the surrounding font and selects its native italic
-    // face. Noto has no CJK italic, so Han glyphs are skewed in small,
-    // punctuation-aware chunks that can still wrap normally.
-    show emph: it => {
-        set text(style: "italic", weight: 500)
-        show _cjk_emph_chunk: chunk => box(
-            skew(ax: -12deg, reflow: false, chunk),
-        )
-        it.body
-    }
+    // Set the body fallback without styling heading contents before their own show rule.
+    set text(font: _typography.body.latin.font)
 
     let paragraph-leading = 0.8em
     // Match theme.css's 1rem block margin more closely at the compact body
@@ -354,16 +398,18 @@
             counter(math.equation).update(0)
         }
         let level = calc.min(it.level, 3)
-        let size = (
+        let size = if it.level >= 4 {
+            _font_size.body
+        } else { (
             _font_size.h1,
             _font_size.h2,
             _font_size.h3,
-        ).at(level - 1)
+        ).at(level - 1) }
+
+        show: _typeset.with("heading", heading-cjk-size: size * 94%)
 
         set text(
-            font: _heading_fonts,
             size: size,
-            weight: "semibold",
             fill: palette.accent,
         )
 
@@ -385,9 +431,7 @@
     }
 
     set text(
-        font: _main_fonts,
         fill: palette.fg,
-        weight: 450,
         size: _font_size.body,
         number-type: "old-style",
         number-width: "tabular",
@@ -411,31 +455,32 @@
 
     // code block
     show raw.where(block: true): it => {
+        show: _typeset.with("code")
         let language = it.lang
         set text(
-            font: _code_fonts,
-            weight: "regular",
-            size: _font_size.tiny,
+            size: _font_size.code,
             fill: palette.code-fg,
         )
+        // Keep code lines compact; tie outer spacing to the surrounding prose.
+        set par(leading: 0.6em, spacing: 0.6em)
+        let code-spacing = _font_size.body
 
         block(
             width: 100%,
-            above: block-spacing,
-            below: block-spacing,
-            inset: 0.75em,
-            radius: 3pt,
+            above: code-spacing,
+            below: code-spacing,
+            inset: (x: 1em, y: 0.9em),
+            radius: 2pt,
             fill: palette.code-bg,
             [
                 #if language != none {
                     place(
                         top + right,
-                        dx: -0.75em,
+                        dx: -1em,
                         // Keep the label on the first code-line baseline.
                         dy: 0.05em,
                         text(
-                            font: _code_fonts,
-                            size: _font_size.tiny,
+                            size: _font_size.code,
                             weight: 500,
                             fill: palette.muted,
                         )[ #language ],
@@ -449,17 +494,15 @@
     }
 
     // inline code
-    show raw.where(block: false): it => box(
+    show raw.where(block: false): it => _typeset("code", box(
         inset: (x: 0.42em, y: 0.18em),
         radius: 2.5pt,
         fill: palette.code-bg,
         text(
-            font: _code_fonts,
-            weight: "regular",
             fill: palette.code-fg,
             it,
         ),
-    )
+    ))
 
     // Keep quotes visually quiet and separate from surrounding paragraphs.
     show quote: it => block(
@@ -500,13 +543,14 @@
     )
 
     show table.cell: it => {
+        show: _typeset.with("table", bold: it.y == 0)
+        set par(spacing: 0.7em)
         // CSS uses the document background for odd rows and the preformatted
         // background for every second row. Keep the same alternating rhythm
         // in paged Typst output, including repeated table headers.
         set text(
             size: 0.875em,
             number-width: "tabular",
-            weight: if it.y == 0 { "bold" } else { 450 },
             fill: if it.y == 0 { palette.accent } else { palette.fg },
         )
         it
@@ -521,6 +565,15 @@
         ]
     }
 
+    // Scale prose without applying a second reduction inside headings.
+    show _cjk_text: it => context {
+        let fonts = if type(text.font) == str { (text.font,) } else { text.font }
+        if not fonts.any(font => lower(font) in ("noto sans", "libertinus sans", "source han sans")) and text.size == _font_size.body {
+            text(size: 0.94 * _font_size.body, it)
+        } else {
+            it
+        }
+    }
     body
 }
 

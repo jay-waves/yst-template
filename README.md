@@ -40,14 +40,11 @@ typst compile --features html note.typ note.html
 The package directory layout, manifest, and local package path follow the
 standard Typst packages format.
 
-## 使用说明
 
-需要 Typst **0.15.0 或更新版本**。PDF 正文和标题分别使用 `Noto Serif SC`
-和 `Noto Sans SC`，代码优先使用 `Fira Code`，建议先安装这些字体。
-首次编译还需要获取 `lib.typ` 中导入的 preview 包。
-
-以下示例按需导入对应函数；一份文档只需调用一次 `#show`。模板配置通过
-普通参数传入，不会读取 `sys.inputs`。
+Keep this template at version **0.1.0**. Existing notes import
+`@local/ypst-template:0.1.0`; do not bump the package version unless every
+dependent note is migrated together. Update the files in the existing local
+`0.1.0` package directory when publishing template fixes.
 
 ### 基础排版与编译
 

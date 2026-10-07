@@ -1,0 +1,111 @@
+{
+  "Document template": {
+    "prefix": "doc",
+    "body": [
+      "#import \"@local/ypst-template:0.1.0\" as theme",
+      "#import theme: template, sidenote, theorem, lemma, corollary, definition, proof,",
+      "  fletcher, diagram, node, edge, equate-lines, physica",
+      "",
+      "#show: template",
+      "",
+      "#set document(",
+      "  title: \"Title\",",
+      "  date: datetime.today(),",
+      "  keywords: (\"keyword\",)",
+      ")",
+      ""
+    ]
+  },
+
+  "Theorem": {
+    "prefix": "thm",
+    "body": [
+      "#theorem[",
+      "  Theorem.",
+      "]"
+    ]
+  },
+
+  "Lemma": {
+    "prefix": "lem",
+    "body": [
+      "#lemma[",
+      "  Lemma.",
+      "]"
+    ]
+  },
+
+  "Corollary": {
+    "prefix": "cor",
+    "body": [
+      "#corollary[",
+      "  Corollary.",
+      "]"
+    ]
+  },
+
+  "Definition": {
+    "prefix": "def",
+    "body": [
+      "#definition[",
+      "  Definition.",
+      "]"
+    ]
+  },
+
+  "Proof": {
+    "prefix": "proof",
+    "body": [
+      "#proof[",
+      "  Proof.",
+      "]"
+    ]
+  },
+
+  "Sidenote": {
+    "prefix": "side",
+    "body": [
+      "#sidenote[",
+      "  Main text.",
+      "][",
+      "  Side note.",
+      "]"
+    ]
+  },
+
+  "Sidenote with image": {
+    "prefix": "sideimg",
+    "body": [
+      "#sidenote(",
+      "  side-image: \"image.png\",",
+      ")[",
+      "  Main text.",
+      "][",
+      "  Side note.",
+      "]"
+    ]
+  },
+
+  "Numbered equation lines": {
+    "prefix": "eql",
+    "body": [
+      "#equate-lines[",
+      "  $",
+      "    a &= b + c #<eq:a> \\",
+      "    d &= e + f #<eq:b>",
+      "  $",
+      "]"
+    ]
+  },
+
+  "Fletcher diagram": {
+    "prefix": "dia",
+    "body": [
+      "#diagram(",
+      "  node((0, 0), [A]),",
+      "  node((1, 0), [B]),",
+      "  edge((0, 0), (1, 0)),",
+      ")"
+    ]
+  }
+}

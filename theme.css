@@ -24,8 +24,8 @@ main[data-theme]:not([data-theme="dark"]) {
   --md-alert-important: #8250df;
   --md-alert-warning: #9a6700;
   --md-alert-tip: #1a7f37;
-  --md-font-serif: "Noto Serif", "Noto Serif CJK SC", "Noto Serif SC", Georgia, "Times New Roman", serif;
-  --md-font-sans: "Noto Sans", "Noto Sans CJK SC", "Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --md-font-serif: "Libertinus Serif", "Source Han Serif", Georgia, "Times New Roman", serif;
+  --md-font-sans: "Noto Sans", "Libertinus Sans", "Source Han Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --md-font-mono: "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --md-font: var(--md-font-serif);
   color-scheme: light;
@@ -66,7 +66,7 @@ body {
   color: var(--md-fg);
   background-color: var(--md-bg);
   font-family: var(--md-font);
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.5;
   word-wrap: break-word;
 }
@@ -95,9 +95,7 @@ html::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--md-muted) 55%, transparent);
 }
 
-body details,
-body figcaption,
-body figure {
+body details {
   display: block;
 }
 
@@ -137,7 +135,7 @@ body h1 {
   margin: .67em 0;
   font-weight: 600;
   padding-bottom: .3em;
-  font-size: 1.6em;
+  font-size: 1.4em;
   border-bottom: 1px solid var(--md-border-muted);
 }
 
@@ -183,7 +181,24 @@ body samp {
 }
 
 body figure {
-  margin-inline: 2.5rem;
+  display: table;
+  width: max-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+body figure img {
+  display: block;
+}
+
+body figcaption {
+  display: table-caption;
+  padding-top: .5rem;
+  color: var(--md-muted);
+  font-size: .875rem;
+  line-height: 1.5;
+  text-align: center;
+  caption-side: bottom;
 }
 
 body hr {
@@ -274,6 +289,15 @@ body table {
   text-align: left;
 }
 
+body table caption {
+  padding-top: .5rem;
+  color: var(--md-muted);
+  font-size: .875rem;
+  line-height: 1.5;
+  text-align: center;
+  caption-side: bottom;
+}
+
 body td,
 body th {
   padding: 0;
@@ -347,7 +371,7 @@ body h6 {
 body h2 {
   font-weight: 600;
   padding-bottom: .3em;
-  font-size: 1.25em;
+  font-size: 1.2em;
   border-bottom: 1px solid var(--md-border-muted);
 }
 
