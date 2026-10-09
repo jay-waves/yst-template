@@ -183,12 +183,14 @@ body samp {
 body figure {
   display: table;
   width: max-content;
-  max-width: 100%;
+  max-width: 90%;
   margin-inline: auto;
 }
 
 body figure img {
   display: block;
+  max-width: 100%;
+  margin-inline: auto;
 }
 
 body figcaption {
